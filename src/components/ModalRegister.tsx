@@ -8,7 +8,11 @@ export default function ModalRegister() {
   const [buyCap, setBuyCap] = useState(false);
   // add more state variables:
   const [plan, setPlan] = useState("");
+  const [planError, setPlanError] = useState(false)
   const [gender, setGender] = useState("");
+  const [genderError, setGenderError] = useState(false);
+  const [isUserAgreed, setIsUserAgreed] = useState(false);
+  const [lnameError, setLnameError] = useState(false);
   // ----------------------------------------------------------------
   const inputFnameOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFnameError(false);
@@ -16,18 +20,24 @@ export default function ModalRegister() {
   };
 
   const inputLnameOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+   setLnameError(false); //เพื่อให้ข้อความหายไปเมื่อเลือก
     setLname(event.target.value);
   };
 
   const selectPlanOnChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setPlanError(false);
     setPlan(event.target.value);
   };
+  
+  
 
   const radioGenderMaleOnChange = () => {
+    setGenderError(false);
     setGender("male");
   };
 
   const radioGenderFemaleOnChange = () => {
+    setGenderError(false);
     setGender("female");
   };
 
@@ -43,35 +53,70 @@ export default function ModalRegister() {
     setBuyCap(event.target.checked);
   };
 
+  const cbUserAgreedOnChange =(event: React.ChangeEvent<HTMLInputElement>) => {
+    setIsUserAgreed(event?.target.checked);
+  }
+
   // ----------------------------------------------------------------
 
   const computeTotalPayment = () => {
     let total = 0;
+    let extra = 0;
+    let allPayment = 0;
     if (plan === "funrun") total += 500;
     if (plan === "mini") total += 800;
     if (plan === "half") total += 1200;
     if (plan === "full") total += 1500;
-    if (buyBottle) total += 200;
-    if (buyShoes) total += 600;
-    if (buyCap) total += 400;
+  
 
-    return total;
+    if (buyBottle) extra += 200;
+    if (buyShoes) extra += 600;
+    if (buyCap) extra += 400;
+
+    if (buyBottle && buyShoes && buyCap) {
+        extra = extra * 0.8;
+    }
+
+    allPayment = total + extra;
+
+    return allPayment;
   };
 
   // ----------------------------------------------------------------
 
   const registerBtnOnClick = () => {
     let fnameOk = true;
-    if (fname === "") {
+    let lnameOk = true;
+    let planOk = true;
+    let genderOk = true;
+   
+    if (fname === "" ) {
       fnameOk = false;
       setFnameError(true);
+
     }
 
-    if (fnameOk) {
+    if(lname ===""){
+      lnameOk = false;
+       setLnameError(true);
+    }
+
+    if(plan === ""){
+      planOk = false
+      setPlanError(true);
+    }
+
+    if(gender === ""){
+      genderOk = false;
+      setGenderError(true);
+    }
+
+    if (fnameOk && lnameOk && planOk && genderOk) {
       alert(
         `Registration complete. Please pay money for ${computeTotalPayment().toLocaleString()} THB.`
       );
     }
+
   };
 
   return (
@@ -105,12 +150,12 @@ export default function ModalRegister() {
                   onChange={inputFnameOnChange}
                   value={fname}
                 />
-                <div className="invalid-feedback">Invalid last name</div>
+                <div className="invalid-feedback">Invalid first name</div>
               </div>
               <div>
                 <label className="form-label">Last name</label>
                 <input
-                  className="form-control"
+                  className= {"form-control" + (lnameError ? " is-invalid" : "")}
                   onChange={inputLnameOnChange}
                   value={lname}
                 />
@@ -122,7 +167,7 @@ export default function ModalRegister() {
             <div className="mt-2">
               <label className="form-label">Plan</label>
               <select
-                className="form-select"
+                className= {"form-select" + (planError ? " is-invalid" : "")}
                 onChange={selectPlanOnChange}
                 value={plan}
               >
@@ -157,7 +202,7 @@ export default function ModalRegister() {
                 Female 👩
                 {/* To show error when user did not select gender, */}
                 {/* We just have to render the div below (Not using is-invalid bootstrap class) */}
-                {/* <div className="text-danger">Please select gender</div> */}
+                {genderError &&<div className="text-danger">Please select gender</div>}
               </div>
             </div>
 
@@ -193,6 +238,8 @@ export default function ModalRegister() {
               </div>
             </div>
 
+             { buyBottle && buyCap && buyShoes && <span className="text-success d-block">(20% Discounted)</span>}
+
             <div className="alert alert-primary mt-3" role="alert">
               Promotion📢 Buy all items to get 20% Discount
             </div>
@@ -201,13 +248,13 @@ export default function ModalRegister() {
             <div>
               Total Payment : {computeTotalPayment().toLocaleString()} THB
               {/* Render below element conditionally when user get 20% discount */}
-              {/* <span className="text-success d-block">(20% Discounted)</span> */}
+            
             </div>
           </div>
           <div className="modal-footer">
             {/* Terms and conditions */}
             <div>
-              <input className="me-2 form-check-input" type="checkbox" />I agree
+              <input className="me-2 form-check-input" type="checkbox" checked={isUserAgreed} onChange={cbUserAgreedOnChange} />I agree
               to the terms and conditions
             </div>
             {/* Register Button */}
@@ -215,7 +262,7 @@ export default function ModalRegister() {
               className="btn btn-success my-2"
               onClick={registerBtnOnClick}
               //You can embbed a state like below to disabled the button
-              //disabled={isUserAgreed}
+              disabled={!isUserAgreed}
             >
               Register
             </button>
